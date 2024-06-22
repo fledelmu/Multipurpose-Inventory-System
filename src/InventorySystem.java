@@ -11,8 +11,9 @@ public class InventorySystem extends JFrame implements ActionListener {
     private JTextField itemField, stockField, typeField, subField, nameField;
     private JButton confirmBtn, sortBtn, subStockBtn, saveBtn, loadBtn;
     private DefaultTableModel tableModel;
+    private JPanel inputPanel,tablePanel,btnPanel;
 
-    private JComboBox<String> sortCB; // You stopped at making the combobox for the sorting functionality
+    private JComboBox<String> sortCB;
     private JTable infoTable;
 
     public InventorySystem() {
@@ -27,86 +28,109 @@ public class InventorySystem extends JFrame implements ActionListener {
         setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
         setResizable(false);
 
-        // Adding items group
+        inputPanel = inputPanelSetup();
+        btnPanel = btnPanelSetup();
+        tablePanel = tablePanelSetup();
+
+        add(inputPanel);
+        add(tablePanel);
+        add(btnPanel);
+
+
+        setVisible(true);
+    }
+
+    private JPanel inputPanelSetup(){
+        JPanel panel = new JPanel();
+
         itemlbl = new JLabel("Item name: ");
-        add(itemlbl);
+        panel.add(itemlbl);
 
         itemField = new JTextField(10);
-        add(itemField);
+        panel.add(itemField);
 
         stocklbl = new JLabel("Stock: ");
-        add(stocklbl);
+        panel.add(stocklbl);
 
         stockField = new JTextField(10);
-        add(stockField);
+        panel.add(stockField);
 
         typelbl = new JLabel("Type: ");
-        add(typelbl);
+        panel.add(typelbl);
 
         typeField = new JTextField(10);
-        add(typeField);
+        panel.add(typeField);
 
-        // Confirm Button
         confirmBtn = new JButton("Confirm");
         confirmBtn.setPreferredSize(new Dimension(80, 20));
         confirmBtn.addActionListener(this);
-        add(confirmBtn);
+        panel.add(confirmBtn);
 
-        // Save and Load Group
+        // Save and Load Buttons
         saveBtn = new JButton("Save");
         saveBtn.setPreferredSize(new Dimension(70, 20));
         saveBtn.addActionListener(this);
-        add(saveBtn);
+        panel.add(saveBtn);
 
         loadBtn = new JButton("Load");
         loadBtn.setPreferredSize(new Dimension(70, 20));
         loadBtn.addActionListener(this);
-        add(loadBtn);
+        panel.add(loadBtn);
 
-        // Table
+        return panel;
+    }
+
+    private JPanel tablePanelSetup(){
+        JPanel panel = new JPanel(new BorderLayout());
+
         String[] columns = {"Name", "Stock", "Type"};
         tableModel = new DefaultTableModel(columns, 0);
         infoTable = new JTable(tableModel);
 
         JScrollPane scrollPane = new JScrollPane(infoTable);
         scrollPane.setPreferredSize(new Dimension(750, 200));
-        add(scrollPane);
+        panel.add(scrollPane);
 
-        // Subtract Stock Group
+        return panel;
+    }
+
+    private JPanel btnPanelSetup(){
+        JPanel panel = new JPanel();
+
+        // Subtract Stock Button
         namelbl = new JLabel("Item Name: ");
-        add(namelbl);
+        panel.add(namelbl);
 
         nameField = new JTextField();
         nameField.setPreferredSize(new Dimension(80, 20));
-        add(nameField);
+        panel.add(nameField);
 
         sublbl = new JLabel("Amount: ");
-        add(sublbl);
+        panel.add(sublbl);
 
         subField = new JTextField();
         subField.setPreferredSize(new Dimension(80, 20));
-        add(subField);
+        panel.add(subField);
 
-        subStockBtn = new JButton("Subtract");
+        subStockBtn = new JButton("Deduct");
         subStockBtn.setPreferredSize(new Dimension(100, 20));
-        add(subStockBtn);
+        panel.add(subStockBtn);
         subStockBtn.addActionListener(this);
 
-        // Sort group
+        // Sort Button
         sortlbl = new JLabel("Sort by: ");
-        add(sortlbl);
+        panel.add(sortlbl);
 
         sortCB = new JComboBox<>();
         sortCB.setPreferredSize(new Dimension(70, 20));
-        add(sortCB);
+        panel.add(sortCB);
 
         sortBtn = new JButton("Sort");
         sortBtn.setPreferredSize(new Dimension(80, 20));
-        add(sortBtn);
+        panel.add(sortBtn);
         sortBtn.addActionListener(this);
 
-
-        setVisible(true);
+        return panel;
     }
 
     private void updateSortComboBox () {
