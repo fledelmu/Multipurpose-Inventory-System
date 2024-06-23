@@ -7,9 +7,9 @@ import java.io.*;
 import java.util.*;
 
 public class InventorySystem extends JFrame implements ActionListener {
-    private JLabel itemlbl, stocklbl, typelbl, sortlbl, sublbl, namelbl;
-    private JTextField itemField, stockField, typeField, subField, nameField;
-    private JButton confirmBtn, sortBtn, subStockBtn, saveBtn, loadBtn;
+    private JLabel itemlbl, stocklbl, typelbl, sortlbl, namelbl, amountlbl;
+    private JTextField itemField, stockField, typeField, subField, nameField, delField, amountField;
+    private JButton confirmBtn, sortBtn, subStockBtn, saveBtn, loadBtn, deleteBtn, addStockBtn;
     private DefaultTableModel tableModel;
     private JPanel inputPanel,tablePanel,btnPanel;
 
@@ -94,43 +94,87 @@ public class InventorySystem extends JFrame implements ActionListener {
         return panel;
     }
 
-    private JPanel btnPanelSetup(){
-        JPanel panel = new JPanel();
+    private JPanel btnPanelSetup() {
+        JPanel finPanel = new JPanel();
+        finPanel.setLayout(new BorderLayout());
 
-        // Subtract Stock Button
+        JPanel mainPanel = new JPanel(new BorderLayout());
+
+        // Panel for Item Name and Amount
+        JPanel inputPanel = new JPanel(new BorderLayout());
+
+        JPanel lblandField1 = new JPanel(new FlowLayout(FlowLayout.LEFT));
         namelbl = new JLabel("Item Name: ");
-        panel.add(namelbl);
+        namelbl.setPreferredSize(new Dimension(80, 20));
+        lblandField1.add(namelbl);
 
-        nameField = new JTextField();
-        nameField.setPreferredSize(new Dimension(80, 20));
-        panel.add(nameField);
+        nameField = new JTextField(10);
+        lblandField1.add(nameField);
+        inputPanel.add(lblandField1, BorderLayout.NORTH);
 
-        sublbl = new JLabel("Amount: ");
-        panel.add(sublbl);
+        JPanel lblandField2 = new JPanel(new FlowLayout(FlowLayout.LEFT));
+        amountlbl = new JLabel("Amount: ");
+        amountlbl.setPreferredSize(new Dimension(80, 20));
+        lblandField2.add(amountlbl);
 
-        subField = new JTextField();
-        subField.setPreferredSize(new Dimension(80, 20));
-        panel.add(subField);
+        amountField = new JTextField(10);
+        lblandField2.add(amountField);
+        inputPanel.add(lblandField2, BorderLayout.CENTER);
 
-        subStockBtn = new JButton("Deduct");
+        mainPanel.add(inputPanel, BorderLayout.NORTH);
+
+        // Panel for Add and Subtract Buttons
+        JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
+
+        addStockBtn = new JButton("Add");
+        addStockBtn.setPreferredSize(new Dimension(100, 20));
+        buttonPanel.add(addStockBtn);
+        addStockBtn.addActionListener(this);
+
+        subStockBtn = new JButton("Subtract");
         subStockBtn.setPreferredSize(new Dimension(100, 20));
-        panel.add(subStockBtn);
+        buttonPanel.add(subStockBtn);
         subStockBtn.addActionListener(this);
 
-        // Sort Button
+        mainPanel.add(buttonPanel, BorderLayout.CENTER);
+
+        // Sort Panel
+        JPanel sortdelContainer = new JPanel(new BorderLayout());
+        JPanel sortPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
         sortlbl = new JLabel("Sort by: ");
-        panel.add(sortlbl);
+        sortlbl.setPreferredSize(new Dimension(80,20));
+        sortPanel.add(sortlbl);
 
         sortCB = new JComboBox<>();
-        sortCB.setPreferredSize(new Dimension(70, 20));
-        panel.add(sortCB);
+        sortCB.setPreferredSize(new Dimension(80, 20));
+        sortPanel.add(sortCB);
 
         sortBtn = new JButton("Sort");
         sortBtn.setPreferredSize(new Dimension(80, 20));
-        panel.add(sortBtn);
-        sortBtn.addActionListener(this);
+        sortPanel.add(sortBtn);
 
-        return panel;
+        sortBtn.addActionListener(this);
+        sortdelContainer.add(sortPanel, BorderLayout.NORTH);
+
+        // Delete Panel
+        JPanel delPanel = new JPanel();
+        JLabel deleteLbl = new JLabel("Remove Item: ");
+        delPanel.add(deleteLbl);
+
+        delField = new JTextField();
+        delField.setPreferredSize(new Dimension(80, 20));
+        delPanel.add(delField);
+
+        deleteBtn = new JButton("Remove");
+        deleteBtn.setPreferredSize(new Dimension(80, 20));
+        delPanel.add(deleteBtn);
+        deleteBtn.addActionListener(this);
+        sortdelContainer.add(delPanel, BorderLayout.CENTER);
+
+        finPanel.add(sortdelContainer, BorderLayout.EAST);
+
+        finPanel.add(mainPanel, BorderLayout.WEST);
+        return finPanel;
     }
 
     private void updateSortComboBox () {
@@ -205,7 +249,7 @@ public class InventorySystem extends JFrame implements ActionListener {
         }
 
         try (BufferedReader reader = new BufferedReader(new FileReader(file))) {
-            // Clear existing table data
+
             tableModel.setRowCount(0);
 
             String line;
@@ -255,34 +299,70 @@ public class InventorySystem extends JFrame implements ActionListener {
         }
 
         if (e.getSource() == subStockBtn) {
-            String name = nameField.getText();
-            String stock = subField.getText();
+            String itemName = nameField.getText();
+            String stock = amountField.getText();
 
-            int amount = Integer.parseInt(stock);
+            if (!itemName.isEmpty() && !stock.isEmpty()) {
+                try {
+                    int amount = Integer.parseInt(stock);
 
-            boolean itemExists = false;
-            for (int row = 0; row < tableModel.getRowCount(); row++) {
-                if (tableModel.getValueAt(row, 0).equals(name)) {
-                    int currentStock = (int) tableModel.getValueAt(row, 1);
-                    int newStock = currentStock - amount;
+                    boolean itemExists = false;
+                    for (int row = 0; row < tableModel.getRowCount(); row++) {
+                        if (tableModel.getValueAt(row, 0).equals(itemName)) {
+                            int currentStock = (int) tableModel.getValueAt(row, 1);
+                            int newStock = currentStock - amount;
 
-                    if (newStock < 0) {
-                        JOptionPane.showMessageDialog(this, "Cannot subtract more than available stock.");
-                        return;
+                            if (newStock < 0) {
+                                JOptionPane.showMessageDialog(this, "Cannot subtract more than available stock.");
+                                return;
+                            }
+
+                            tableModel.setValueAt(newStock, row, 1);
+                            itemExists = true;
+                            break;
+                        }
                     }
 
-                    tableModel.setValueAt(newStock, row, 1);
-                    itemExists = true;
-                    break;
+                    if (!itemExists) {
+                        JOptionPane.showMessageDialog(this, "Item not found in inventory.");
+                    }
+
+                    // Clear input fields
+                    nameField.setText("");
+                    amountField.setText("");
+                } catch (NumberFormatException ex) {
+                    JOptionPane.showMessageDialog(this, "Invalid stock amount. Please enter a valid number.");
                 }
+            } else {
+                JOptionPane.showMessageDialog(this, "Please enter item name and amount.");
             }
+        }
 
-            if (!itemExists) {
-                JOptionPane.showMessageDialog(this, "Item not found.");
+        if (e.getSource() == addStockBtn) {
+            String itemName = nameField.getText();
+            String stock = amountField.getText();
+
+            if (!itemName.isEmpty() && !stock.isEmpty()) {
+                int amount = Integer.parseInt(stock);
+
+                boolean itemExists = false;
+                for (int row = 0; row < tableModel.getRowCount(); row++) {
+                    if (tableModel.getValueAt(row, 0).equals(itemName)) {
+                        int currentStock = (int) tableModel.getValueAt(row, 1);
+                        tableModel.setValueAt(currentStock + amount, row, 1);
+                        itemExists = true;
+                        break;
+                    }
+                }
+
+                if (!itemExists) {
+                    JOptionPane.showMessageDialog(this, "Item not found in inventory.");
+                }
+                nameField.setText("");
+                amountField.setText("");
+            } else {
+                JOptionPane.showMessageDialog(this, "Please enter item name and amount.");
             }
-
-            nameField.setText("");
-            subField.setText("");
         }
 
         if (e.getSource() == sortBtn) {
@@ -312,6 +392,34 @@ public class InventorySystem extends JFrame implements ActionListener {
                 File file = fileChooser.getSelectedFile();
                 Load(file.getAbsolutePath());
             }
+        }
+
+        if (e.getSource() == deleteBtn) {
+            String itemNameToDelete = delField.getText().trim();
+
+            if (!itemNameToDelete.isEmpty()) {
+                boolean itemFound = false;
+
+                for (int row = 0; row < tableModel.getRowCount(); row++) {
+                    String itemName = (String) tableModel.getValueAt(row, 0);
+                    if (itemName.equals(itemNameToDelete)) {
+                        tableModel.removeRow(row);
+                        updateSortComboBox();
+                        itemFound = true;
+                        break;
+                    }
+                }
+
+                if (!itemFound) {
+                    JOptionPane.showMessageDialog(this, "Item not found in the inventory.");
+                } else {
+                    JOptionPane.showMessageDialog(this, "Item successfully removed from the inventory.");
+                }
+            } else {
+                JOptionPane.showMessageDialog(this, "Please enter the item name to remove.");
+            }
+
+            delField.setText("");
         }
     }
 }
